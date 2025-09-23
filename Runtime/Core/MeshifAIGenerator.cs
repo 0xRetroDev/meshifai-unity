@@ -18,7 +18,7 @@ namespace MeshifAI.Core
             Action<GameObject> onComplete,
             Action<string> onError,
             Action<string, float> onStatus,
-            float variance,
+            bool highRes,
             bool applyDefaultMaterial)
         {
             // Validate input
@@ -32,7 +32,7 @@ namespace MeshifAI.Core
             onStatus?.Invoke("Sending request to API...", 0.1f);
 
             // Start API request task
-            var apiTask = MeshifaiApiClient.GenerateModelAsync(prompt, variance);
+            var apiTask = MeshifaiApiClient.GenerateModelAsync(prompt, highRes);
 
             // Wait until API request completes - outside of try/catch
             while (!apiTask.IsCompleted)
@@ -120,7 +120,7 @@ namespace MeshifAI.Core
             }
 
             // Launch the load model coroutine
-            yield return LoadGlbModelSafe(tempFilePath, applyDefaultMaterial, onComplete, onError);
+            yield return LoadGlbModelSafe(tempFilePath, applyDefaultMaterial, onComplete, onError, prompt, highRes);
         }
 
         /// <summary>
@@ -130,7 +130,9 @@ namespace MeshifAI.Core
             string filePath,
             bool applyDefaultMaterial,
             Action<GameObject> onComplete,
-            Action<string> onError)
+            Action<string> onError,
+            string prompt,
+            bool highRes)
         {
             // Create root GameObject
             GameObject modelObject = null;
@@ -157,7 +159,7 @@ namespace MeshifAI.Core
                     UnityEngine.Object.Destroy(modelObject);
 
                 onError?.Invoke($"Failed to create GLTFast importer: {ex.Message}");
-                CreateFallbackModel(onComplete, applyDefaultMaterial);
+                CreateFallbackModel(onComplete, applyDefaultMaterial, prompt, highRes);
                 yield break;
             }
 
@@ -198,7 +200,7 @@ namespace MeshifAI.Core
                     UnityEngine.Object.Destroy(modelObject);
 
                 // Create fallback
-                CreateFallbackModel(onComplete, applyDefaultMaterial);
+                CreateFallbackModel(onComplete, applyDefaultMaterial, prompt, highRes);
                 yield break;
             }
 
@@ -221,6 +223,10 @@ namespace MeshifAI.Core
                     ApplyDefaultMaterial(modelObject);
                 }
 
+                // Automatically add ModelGenerationData component with the generation info
+                ModelGenerationData generationData = modelObject.AddComponent<ModelGenerationData>();
+                generationData.Initialize(prompt, highRes);
+
                 // Complete
                 onComplete?.Invoke(modelObject);
             }
@@ -240,7 +246,7 @@ namespace MeshifAI.Core
         /// <summary>
         /// Creates a fallback cube model when GLB loading fails
         /// </summary>
-        private static void CreateFallbackModel(Action<GameObject> onComplete, bool applyDefaultMaterial)
+        private static void CreateFallbackModel(Action<GameObject> onComplete, bool applyDefaultMaterial, string prompt, bool highRes)
         {
             try
             {
@@ -258,6 +264,10 @@ namespace MeshifAI.Core
                         renderer.sharedMaterial = defaultMaterial;
                     }
                 }
+
+                // Add ModelGenerationData component even for fallback models
+                ModelGenerationData generationData = fallbackObject.AddComponent<ModelGenerationData>();
+                generationData.Initialize(prompt, highRes);
 
                 Debug.LogWarning("Using fallback cube as model.");
                 onComplete?.Invoke(fallbackObject);

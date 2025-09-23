@@ -14,9 +14,9 @@ namespace MeshifAI.Core
         public string Prompt { get; private set; }
 
         /// <summary>
-        /// The variance used during generation
+        /// Whether high resolution mode was used during generation
         /// </summary>
-        public float Variance { get; private set; }
+        public bool HighRes { get; private set; }
 
         /// <summary>
         /// When the model was generated
@@ -26,20 +26,25 @@ namespace MeshifAI.Core
         /// <summary>
         /// Initialize the generation data
         /// </summary>
-        public void Initialize(string prompt, float variance)
+        /// <param name="prompt">The text prompt used for generation</param>
+        /// <param name="highRes">Whether high resolution mode was used</param>
+        public void Initialize(string prompt, bool highRes)
         {
             Prompt = prompt;
-            Variance = variance;
+            HighRes = highRes;
             GenerationTime = DateTime.Now;
         }
 
         /// <summary>
         /// Initialize the generation data with a specific time
         /// </summary>
-        public void Initialize(string prompt, float variance, DateTime generationTime)
+        /// <param name="prompt">The text prompt used for generation</param>
+        /// <param name="highRes">Whether high resolution mode was used</param>
+        /// <param name="generationTime">When the model was generated</param>
+        public void Initialize(string prompt, bool highRes, DateTime generationTime)
         {
             Prompt = prompt;
-            Variance = variance;
+            HighRes = highRes;
             GenerationTime = generationTime;
         }
     }

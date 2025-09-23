@@ -16,7 +16,7 @@ namespace MeshifAI.EditorTools
 
         // UI variables
         private string prompt = "A Futuristic Spaceship";
-        private float variance = 0.2f;
+        private bool highRes = false;
         private Vector2 scrollPosition;
         private bool isGenerating = false;
         private string statusMessage = "";
@@ -180,14 +180,23 @@ namespace MeshifAI.EditorTools
 
             EditorGUILayout.Space(10);
 
-            // Variance slider with better layout
+            // High-res toggle with better layout
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Variance:", GUILayout.Width(70));
-            variance = EditorGUILayout.Slider(variance, 0f, 1f);
+
+            // Create a custom toggle that shows Standard/High-Res labels
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.LabelField("", GUILayout.Width(0));
+            highRes = EditorGUILayout.Toggle(highRes, GUILayout.Width(20));
+            EditorGUILayout.LabelField("High-Res", GUILayout.Width(60));
+
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.LabelField("(Lower values create more predictable results, higher values more varied)",
-                                        EditorStyles.miniLabel);
+            EditorGUILayout.LabelField(highRes ?
+                "(High-resolution mode produces better quality but takes longer to generate)" :
+                "(Standard mode generates faster with good quality)",
+                EditorStyles.miniLabel);
 
             EditorGUILayout.Space(15);
 
@@ -211,7 +220,7 @@ namespace MeshifAI.EditorTools
                 EditorGUILayout.Space(15);
 
                 Rect progressRect = EditorGUILayout.GetControlRect(false, 24);
-                EditorGUI.ProgressBar(progressRect, 0.5f, "Generating model...");
+                EditorGUI.ProgressBar(progressRect, 0.5f, highRes ? "Generating high-res model..." : "Generating model...");
 
                 EditorGUILayout.Space(5);
 
@@ -289,7 +298,7 @@ namespace MeshifAI.EditorTools
                 Repaint();
 
                 // Generate model
-                lastResponse = await MeshifaiApiClient.GenerateModelAsync(prompt, variance);
+                lastResponse = await MeshifaiApiClient.GenerateModelAsync(prompt, highRes);
 
                 if (!lastResponse.success)
                 {
@@ -337,7 +346,7 @@ namespace MeshifAI.EditorTools
                 previewModel = new GameObject("MeshifAI_Preview");
 
                 // Store the path to the GLB file
-                previewModel.AddComponent<MeshifaiModelData>().Initialize(tempFilePath, prompt, variance);
+                previewModel.AddComponent<MeshifaiModelData>().Initialize(tempFilePath, prompt, highRes);
 
                 // Try to load the imported model
                 GameObject importedModel = AssetDatabase.LoadAssetAtPath<GameObject>(tempFilePath);
@@ -351,7 +360,9 @@ namespace MeshifAI.EditorTools
                     // Apply default material to fix pink shader
                     ApplyDefaultMaterial(previewInstance);
 
-                    statusMessage = "Model successfully imported and previewed";
+                    statusMessage = highRes ?
+                        "High-resolution model successfully imported and previewed" :
+                        "Model successfully imported and previewed";
                 }
                 else
                 {
@@ -449,7 +460,7 @@ namespace MeshifAI.EditorTools
                 string metadataJson = JsonUtility.ToJson(new ModelMetadata
                 {
                     prompt = modelData.Prompt,
-                    variance = modelData.Variance,
+                    highRes = modelData.HighRes,
                     generatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 }, true);
 
@@ -511,7 +522,7 @@ namespace MeshifAI.EditorTools
         private class ModelMetadata
         {
             public string prompt;
-            public float variance;
+            public bool highRes;
             public string generatedAt;
         }
 
@@ -520,13 +531,13 @@ namespace MeshifAI.EditorTools
         {
             public string GlbFilePath;
             public string Prompt;
-            public float Variance;
+            public bool HighRes;
 
-            public void Initialize(string path, string prompt, float variance)
+            public void Initialize(string path, string prompt, bool highRes)
             {
                 GlbFilePath = path;
                 Prompt = prompt;
-                Variance = variance;
+                HighRes = highRes;
             }
         }
 

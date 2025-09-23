@@ -25,23 +25,21 @@ namespace MeshifAI
         private const string API_URL = "https://api.meshifai.com/v1/text-to-3d.php";
 
         /// <summary>
-        /// Generates a 3D model from the provided text prompt with the specified variance
+        /// Generates a 3D model from the provided text prompt with the specified quality setting
         /// </summary>
         /// <param name="prompt">Text description of the 3D model to generate</param>
-        /// <param name="variance">Variance value between 0.0 and 1.0 controlling generation diversity</param>
+        /// <param name="highRes">Whether to use high resolution mode for better quality (slower generation)</param>
         /// <returns>Response containing download URL and rate limit information</returns>
-        public static async Task<MeshifaiResponse> GenerateModelAsync(string prompt, float variance)
+        public static async Task<MeshifaiResponse> GenerateModelAsync(string prompt, bool highRes)
         {
             // Validate inputs
             if (string.IsNullOrEmpty(prompt))
                 throw new ArgumentException("Prompt cannot be empty", nameof(prompt));
 
-            variance = Mathf.Clamp(variance, 0f, 1f);
-
             // Create form data
             WWWForm form = new WWWForm();
             form.AddField("prompt", prompt);
-            form.AddField("variance", variance.ToString("0.0"));
+            form.AddField("high_res", highRes ? "true" : "false");
 
             // Create request
             using (UnityWebRequest request = UnityWebRequest.Post(API_URL, form))

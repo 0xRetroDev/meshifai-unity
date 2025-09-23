@@ -8,7 +8,7 @@ namespace MeshifAI.Core
     /// <summary>
     /// Main API for MeshifAI model generation
     /// </summary>
-    public static class MeshifAI
+    public static class Meshifai
     {
         /// <summary>
         /// Generate a 3D model from a text description with full callbacks
@@ -17,7 +17,7 @@ namespace MeshifAI.Core
         /// <param name="onComplete">Callback when generation completes successfully</param>
         /// <param name="onError">Callback when an error occurs</param>
         /// <param name="onStatus">Callback for status updates</param>
-        /// <param name="variance">Variance value (0-1) controlling generation diversity</param>
+        /// <param name="highRes">Whether to use high resolution mode for better quality (slower generation)</param>
         /// <param name="applyDefaultMaterial">Whether to apply a default material to the model</param>
         /// <returns>Handle that can be used to cancel the generation</returns>
         public static object GenerateModel(
@@ -25,7 +25,7 @@ namespace MeshifAI.Core
             Action<GameObject> onComplete,
             Action<string> onError = null,
             Action<string, float> onStatus = null,
-            float variance = 0.2f,
+            bool highRes = false,
             bool applyDefaultMaterial = true)
         {
             // Start the coroutine using the runner (allow multiple generations)
@@ -35,11 +35,10 @@ namespace MeshifAI.Core
                     onComplete,
                     onError,
                     onStatus,
-                    variance,
+                    highRes,
                     applyDefaultMaterial
                 )
             );
-
             return handle;
         }
 
@@ -83,7 +82,7 @@ namespace MeshifAI.Core
             if (copyData == null)
             {
                 copyData = copy.AddComponent<ModelGenerationData>();
-                copyData.Initialize(originalData.Prompt, originalData.Variance, originalData.GenerationTime);
+                copyData.Initialize(originalData.Prompt, originalData.HighRes, originalData.GenerationTime);
             }
 
             return copy;
