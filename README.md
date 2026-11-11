@@ -88,5 +88,5 @@ MIT
 
 ## Support
 
-For support requests, please [contact us](mailto:hello@0xretro.dev) or open an issue.
+For support requests, please [contact us](mailto:hello@reinhardtweyers.com) or open an issue.
 
